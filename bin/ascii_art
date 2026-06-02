@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+from ascii_art.parse_args import parse_args, validate_args
+
+def main():
+    args = parse_args()
+    validate_args(args)
+
+    ...
+
+if __name__ == "__main__":
+    main()
