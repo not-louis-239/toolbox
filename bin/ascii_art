@@ -14,9 +14,10 @@ def main():
     validate_args(args)
 
     img = load_img(args.input)
-    ascii_art = convert_img_to_ascii_art(img)
+    ascii_art = convert_img_to_ascii_art(img, small=args.small, mode=args.mode)
 
-    py_script = f"print(\"{ascii_art}\")"
+    escaped = ascii_art.replace('\033', '\\033')
+    py_script = f'print("""{escaped}""")'
     args.output.write_text(py_script, encoding="utf-8")
 
     print(f"Script generation completed at '{args.output}'\n")

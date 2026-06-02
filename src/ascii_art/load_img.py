@@ -19,13 +19,11 @@ import numpy as np
 
 def load_img(fp: Path) -> np.ndarray:
     """Load image from file path and convert to a NumPy array of
-    shape (width, height, 4) to represent a 2-dimensional array
+    shape (height, width, 4) to represent a 2-dimensional array
     of RGBA values."""
 
-    # Open the image and ensure it's in RGBA mode
     with Image.open(fp) as img:
         rgba_img = img.convert("RGBA")
-        # Convert to a standard NumPy array (creates shape: height, width, 4)
-        arr = np.array(rgba_img)
-        # Transpose axes 0 and 1 to change shape from (height, width, 4) to (width, height, 4)
-        return np.transpose(arr, (1, 0, 2))
+
+    arr = np.array(rgba_img)
+    return arr

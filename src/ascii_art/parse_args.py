@@ -5,12 +5,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NoReturn
 
+from ascii_art.utils import ColourSpace
+
 @dataclass
 class Args:
     input: Path
     output: Path
     small: bool
     force: bool
+    mode: ColourSpace  # force the compiler to use a specific colour mode
 
 def die(msg: str, exitcode: int = 1) -> NoReturn:
     print(f"ascii_art: fatal: {msg}", file=sys.stderr)
@@ -46,13 +49,21 @@ def parse_args() -> Args:
         help="Overwrite the output file if it exists."
     )
 
+    parser.add_argument(
+        "-m", "--mode",
+        choices=["col256", "true"],
+        default="true",  # Default to Truecolor if they don't specify
+        help="Force the color space compiler mode (default: true)"
+    )
+
     args_raw = parser.parse_args()
 
     args = Args(
         input=args_raw.input,
         output=args_raw.output,
         small=args_raw.small,
-        force=args_raw.force
+        force=args_raw.force,
+        mode=args_raw.mode
     )
 
     return args
