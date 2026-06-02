@@ -2,9 +2,47 @@ import numpy as np
 
 from ascii_art.utils import ColourSpace
 
+CLEAR: np.ndarray = np.array([0, 0, 0, 0], dtype=np.uint8)
+RESET: str = "\033[0m"
+
 def _rgb_to_col256(r: int, g: int, b: int) -> int:
     cr, cg, cb = r // 51, g // 51, b // 51
     return 16 + 36 * cr + 6 * cg + cb
+
+def _gen_col_code(r: int, g: int, b: int, *, mode: ColourSpace, bg: bool = False):
+    """Convert a single pixel to a colour code"""
+    colour_section = f"2;{r};{g};{b}" if mode == ColourSpace.TRUE else f"5;{_rgb_to_col256(r, g, b)}"
+    return f"\033[{48 if bg else 38};{colour_section}m"
+
+def _pix(top: np.ndarray, bot: np.ndarray, *, mode: ColourSpace) -> str:
+    """Convert a single pair of (top, bot) in small mode"""
+
+    # We start by assuming that top = foreground, bot = background.
+    fg_r, fg_g, fg_b, fg_a = top
+    bg_r, bg_g, bg_b, bg_a = bot
+
+    # Currently, small mode does not accept alpha.
+    # So we normalise alpha values to either completely opaque or completely transparent
+    fg_a = 1 if fg_a else 0
+    bg_a = 1 if bg_a else 0
+
+    # If the top is transparent (not used), we:
+    #   - swap the char being used from '▀' to '▄'
+    #   - swap the background and foreground colours
+    # If both the top and bottom are transparent, return an empty space.
+
+    if not fg_a:
+        if not bg_a:
+            return f'{RESET} '
+        (fg_r, fg_g, fg_b, fg_a), (bg_r, bg_g, bg_b, bg_a) = (bg_r, bg_g, bg_b, bg_a), (fg_r, fg_g, fg_b, fg_a)
+        char = '▄'
+    else:
+        char = '▀'
+
+    fg_colstr = _gen_col_code(fg_r, fg_g, fg_b, mode=mode)
+    bg_colstr = _gen_col_code(bg_r, bg_g, bg_b, mode=mode, bg=True)
+    colstr = fg_colstr + bg_colstr
+    return f'{colstr}{char}{RESET}'
 
 def _convert(img: np.ndarray, *, mode: ColourSpace) -> str:
     height, width, _ = img.shape
@@ -33,7 +71,19 @@ def _convert(img: np.ndarray, *, mode: ColourSpace) -> str:
     return "\n".join(lines)
 
 def _convert_small(img: np.ndarray, *, mode: ColourSpace) -> str:
-    ...
+    height, width, _ = img.shape
+    lines = []
+
+    for y in range(0, height, 2):
+        row_tokens = []
+
+        for x in range(width):
+            top_pix, bot_pix = img[y, x], (img[y + 1, x] if y + 1 < height else CLEAR)  # if we don't check for bounds, well then hello, IndexError!
+            string = _pix(top=top_pix, bot=bot_pix, mode=mode)
+            row_tokens.append(string)
+
+        lines.append("".join(row_tokens))
+    return "\n".join(lines)
 
 def convert_img_to_ascii_art(img, *, small: bool, mode: ColourSpace) -> str:
     return (

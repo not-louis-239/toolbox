@@ -53,7 +53,7 @@ def parse_args() -> Args:
         "-m", "--mode",
         choices=["col256", "true"],
         default="true",  # Default to Truecolor if they don't specify
-        help="Force the color space compiler mode (default: true)"
+        help="Force the colour space compiler mode (default: true)"
     )
 
     args_raw = parser.parse_args()
