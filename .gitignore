@@ -13,3 +13,8 @@ __pycache__/
 
 # I seem to get a bunch of these for no reason:
 tempCodeRunnerFile.py
+
+.vscode/
+.vscode/*
+
+!.vscode/tasks.json

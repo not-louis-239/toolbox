@@ -1,0 +1,19 @@
+{
+    "folders": [
+        {
+            "name": "Root Repository",
+            "path": "."
+        },
+        {
+            "name": "Black Image Generator",
+            "path": "projects/blackimg"
+        },
+        {
+           "name": "Nearest Neighbour Resizer",
+           "path": "projects/nn_resize"
+        }
+    ],
+    "settings": {
+        // Shared settings across all projects can go here
+    }
+}
