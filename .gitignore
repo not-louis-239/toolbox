@@ -1,0 +1,15 @@
+# .gitignore
+
+workflow/
+personal_data/
+
+__pycache__/
+.venv
+*.pyc
+*.env
+
+.DS_Store
+*.tmp
+
+# I seem to get a bunch of these for no reason:
+tempCodeRunnerFile.py
