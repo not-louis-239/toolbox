@@ -112,16 +112,19 @@ def make_folder_name(year: int, season: int, day: int) -> str:
 def parse_args() -> Args:
     parser = ap.ArgumentParser(
         description=(
-            "Back up a Stardew Valley save file, along with a receipt of the mods you have installed."
-            " Creates a new directory in the output folder, naming it 'y{year}_{season}{day}' (e.g. y0001_0101)."
-            " Hence, the output directory must already exist."
-            " The mod receipt is a text file listing all the mods you have installed, and their versions if they can be found."
-        )
+            "Back up a Stardew Valley save file and installed mods.\n"
+            "\n"
+            "Creates a timestamped sub-directory (e.g., 'y0001_0101') inside a pre-existing\n"
+            "output folder. This backup directory will contain:\n"
+            "  - A copy of your Stardew Valley save folder.\n"
+            "  - A manifest text file listing all currently active mods and their versions."
+        ),
+        formatter_class=ap.RawDescriptionHelpFormatter  # Stop eating all my newlines, argparse!!
     )
 
     parser.add_argument("save_folder", type=Path, help="The path to the Stardew Valley save folder you want to back up.")
     parser.add_argument("output_folder", type=Path, help="The path to the folder where the backup and mod receipt will be saved.")
-    parser.add_argument("--mods-folder", type=Path, default=DEFAULT_SV_MODS_FOLDER, help=f"The path to your Stardew Valley mods folder (default: {DEFAULT_SV_MODS_FOLDER!r}).")
+    parser.add_argument("--mods-folder", type=Path, default=DEFAULT_SV_MODS_FOLDER, help=f"The path to your Stardew Valley mods folder (default: '{DEFAULT_SV_MODS_FOLDER}').")
     args = parser.parse_args()
 
     if not args.save_folder.exists():
