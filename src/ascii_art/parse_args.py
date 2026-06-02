@@ -77,5 +77,3 @@ def validate_args(args: Args) -> None:
             print(f"Warning: overwriting existing file '{args.output}'", file=sys.stderr)
         else:
             die(f"Output file '{args.output}' already exists")
-
-

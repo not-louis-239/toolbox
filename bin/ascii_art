@@ -6,12 +6,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from ascii_art.parse_args import parse_args, validate_args
+from ascii_art.load_img import load_img
+from ascii_art.convert import convert_img_to_ascii_art
 
 def main():
     args = parse_args()
     validate_args(args)
 
-    ...
+    img = load_img(args.input)
+    ascii_art = convert_img_to_ascii_art(img)
+
+    py_script = f"print(\"{ascii_art}\")"
+    args.output.write_text(py_script, encoding="utf-8")
+
+    print(f"Script generation completed at '{args.output}'\n")
+    print(ascii_art)
 
 if __name__ == "__main__":
     main()
