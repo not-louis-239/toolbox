@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# v1.0.0
 # venv_touch.py
 # Create a venv in ~/venvs and symlink to ./.venv in the current directory
 # Usage: ./venv_touch.py <venv_name> [python_bin]

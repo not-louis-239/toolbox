@@ -15,6 +15,10 @@
         {
             "name": "ANSI Art Generator",
             "path": "projects/ansi_art"
+        },
+        {
+            "name": "Welcome Greeting",
+            "path": "projects/welcome"
         }
     ],
     "settings": {

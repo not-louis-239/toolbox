@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# v1.0.0
 # check_licences.py - check a target folder for files missing a licence header
 # optionally, input a path to a text file with a list of files or directories
 # to ignore according to .gitignore-style rules

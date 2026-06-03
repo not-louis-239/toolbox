@@ -1,5 +1,7 @@
 # ANSI Art Generator
 
+v1.0.0
+
 This project uses Python to accept an image path and convert it to a script that prints terminal art, using `▀`, `▄` and escape codes to handle transparency to ensure proper display inside the terminal.
 
 This is mostly a utility for making pixel art that can be printed in the terminal. Depending on:
