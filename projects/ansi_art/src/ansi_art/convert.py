@@ -17,7 +17,7 @@
 
 import numpy as np
 
-from ascii_art.utils import ColourSpace
+from ansi_art.utils import ColourSpace
 
 CLEAR: np.ndarray = np.array([0, 0, 0, 0], dtype=np.uint8)
 RESET: str = "\033[0m"
@@ -106,7 +106,7 @@ def _convert_small(img: np.ndarray, *, mode: ColourSpace) -> str:
         lines.append("".join(row_tokens))
     return "\n".join(lines)
 
-def convert_img_to_ascii_art(img, *, small: bool, mode: ColourSpace) -> str:
+def convert_img_to_ansi_art(img, *, small: bool, mode: ColourSpace) -> str:
     return (
         _convert_small(img, mode=mode)
         if small else _convert(img, mode=mode)

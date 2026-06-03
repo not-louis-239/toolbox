@@ -4,4 +4,4 @@ This is a personal toolbox of things I made that aren't super big projects on th
 
 ## Licence
 
-Licenced under the GNU General Public Licence v3.0 (GPL-3.0). See [LICENCE](./LICENCE) for more details.
+All source files and projects are licensed under the GNU General Public Licence v3.0 (GPL-3.0) unless they include a separate LICENCE file. See [LICENCE](./LICENCE) for more details.

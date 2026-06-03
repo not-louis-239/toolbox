@@ -22,7 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NoReturn
 
-from ascii_art.utils import ColourSpace
+from ansi_art.utils import ColourSpace
 
 @dataclass
 class Args:
@@ -33,12 +33,12 @@ class Args:
     mode: ColourSpace  # force the compiler to use a specific colour mode
 
 def die(msg: str, exitcode: int = 1) -> NoReturn:
-    print(f"ascii_art: fatal: {msg}", file=sys.stderr)
+    print(f"ansi_art: fatal: {msg}", file=sys.stderr)
     sys.exit(exitcode)
 
 def parse_args() -> Args:
     parser = ap.ArgumentParser(
-        description="Convert images to ANSI/ASCII art."
+        description="Convert images to ANSI pixel art."
     )
 
     parser.add_argument(

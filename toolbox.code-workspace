@@ -11,6 +11,10 @@
         {
            "name": "Nearest Neighbour Resizer",
            "path": "projects/nn_resize"
+        },
+        {
+            "name": "ANSI Art Generator",
+            "path": "projects/ansi_art"
         }
     ],
     "settings": {
