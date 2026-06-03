@@ -1,8 +1,4 @@
-#!/bin/bash
-
-# svbackup - stardew valley mod backup
-# use this to back up your Stardew Valley save folder along with a receipt of what mods you have when making a backup
-
+# welcome.py - entry point for terminal welcome sequence
 # Copyright (C) 2026 Louis Masarei-Boulton <243234869+not-louis-239@users.noreply.github.com>
 # https://github.com/not-louis-239
 #
@@ -19,6 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+def main():
+    pass
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-python3 "$SCRIPT_DIR/src/svbackup.py" "$@"
+if __name__ == "__main__":
+    main()
+
