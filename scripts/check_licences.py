@@ -22,12 +22,9 @@ import sys
 import os
 import re
 import argparse as ap
-import fnmatch
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
-PREFIX_RE = re.compile(r"^\s*[#|//|/\*]+")
-SUFFIX_RE = re.compile(r"[\*/]+\s*$")
 
 @dataclass
 class Args:
@@ -77,10 +74,19 @@ def validate_args(args: Args) -> None:
             die(f"invalid ignore: not a file: {args.ignore_fp}")
 
 def _normalise_text(text: str) -> str:
-    # strip any leading or trailing whitespace
-    text = PREFIX_RE.sub("", text)
-    text = SUFFIX_RE.sub("", text)
-    return text
+    # Strip common line comment markers from each line and trim whitespace.
+    # Handles '#', '//' and C-style block comment markers like '/*' and leading '*'.
+    lines = text.splitlines()
+    out_lines = []
+    for line in lines:
+        # Remove leading comment markers and surrounding whitespace
+        ln = re.sub(r"^\s*(?:#|//|/\*|\*)\s?", "", line)
+        # Remove trailing end-of-block marker if present
+        ln = re.sub(r"\s*\*/\s*$", "", ln)
+        out_lines.append(ln.rstrip())
+
+    # Rejoin and strip any leading/trailing blank lines
+    return "\n".join(out_lines).strip()
 
 def _path_matches_pattern(p: Path, pat: str) -> bool:
     """Check whether a path matches an ignore pattern.
@@ -184,7 +190,6 @@ def scan_file_for_licence(file_text: str, licence_text: str) -> bool:
 
 def main() -> None:
     args = parse_args()
-    print(args)
     validate_args(args)
 
     num_missing = 0
