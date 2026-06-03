@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # check_licences.py - check a target folder for files missing a licence header
 # optionally, input a path to a text file with a list of files or directories
 # to ignore recursively
@@ -26,6 +28,13 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 
+COL_INFO = "\033[94m"
+COL_WARN = "\033[93m"
+COL_ERR = "\033[91m"
+COL_RESET = "\033[0m"
+COL_BOLD = "\033[1m"
+
+
 @dataclass
 class Args:
     licence_header_fp: Path
@@ -33,7 +42,7 @@ class Args:
     target_dir: Path
 
 def die(msg: str, exitcode: int = 1) -> None:
-    print(f"fatal: {msg}", file=sys.stderr)
+    print(f"{COL_ERR}{COL_BOLD}fatal{COL_RESET}: {COL_ERR}{msg}{COL_RESET}", file=sys.stderr)
     sys.exit(exitcode)
 
 def parse_args() -> Args:
@@ -155,9 +164,6 @@ def scan_file_for_licence(file_text: str, licence_text: str) -> bool:
     if not file_text:
         return False
 
-    if not licence_text.strip():
-        raise ValueError("invalid licence: licence does not contain any text")
-
     file_lines_norm = _normalise_text(file_text).splitlines()
     licence_lines_norm = _normalise_text(licence_text).splitlines()
 
@@ -188,7 +194,7 @@ def scan_file_for_licence(file_text: str, licence_text: str) -> bool:
 
     return False
 
-def main() -> None:
+def main() -> int:
     args = parse_args()
     validate_args(args)
 
@@ -203,27 +209,37 @@ def main() -> None:
             die(f"invalid ignore: invalid source encoding: {args.ignore_fp}")
 
     paths_to_scan = retrieve_paths(args.target_dir, ignore_text)
-    print(f"Found {len(paths_to_scan):,} files to scan.")
+    print(f"Found {COL_INFO}{len(paths_to_scan):,}{COL_RESET} files to scan.")
 
     # Read licence once
     licence_text = args.licence_header_fp.read_text()
+    if not licence_text.strip():
+        die(f"invalid licence: licence file is empty: {args.licence_header_fp}")
 
     for path in paths_to_scan:
         if not os.access(path, os.R_OK):
-            print(f"skipping file: '{path}' - read permission denied", file=sys.stderr)
+            print(f"skipping file: {COL_WARN}'{path}'{COL_RESET} - read permission denied", file=sys.stderr)
             continue
 
         try:
             file_text = path.read_text()
         except UnicodeDecodeError:
-            print(f"skipping file: '{path}' - invalid/unknown encoding", file=sys.stderr)
+            print(f"skipping file: {COL_WARN}'{path}'{COL_RESET} - unknown encoding", file=sys.stderr)
             continue
 
         if not scan_file_for_licence(file_text, licence_text):
-            print(f"missing licence: '{path}'")
+            print(f"missing licence: {COL_ERR}'{path}'{COL_RESET}")
             num_missing += 1
 
-    print(f"Scan complete. {num_missing:,} files are missing licences.")
+    print()
+
+    if num_missing:
+        print(f"Scan complete. {COL_ERR}{num_missing:,}{COL_RESET} files are missing licences.")
+        return 1
+
+    print("Scan complete. No files missing licences were found.")
+    return 0
 
 if __name__ == "__main__":
-    main()
+    exitcode = main()
+    sys.exit(exitcode)
