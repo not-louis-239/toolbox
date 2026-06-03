@@ -4,8 +4,8 @@
 # optionally, input a path to a text file with a list of files or directories
 # to ignore according to .gitignore-style rules
 
+# repo at: https://github.com/not-louis-239/toolbox
 # Copyright (C) 2026 Louis Masarei-Boulton <243234869+not-louis-239@users.noreply.github.com>
-# https://github.com/not-louis-239
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -68,19 +68,19 @@ def parse_args() -> Args:
 
 def validate_args(args: Args) -> None:
     if not args.licence_header_fp.exists():
-        die(f"invalid licence: no such file: {args.licence_header_fp}")
+        die(f"invalid licence: no such file: '{args.licence_header_fp}'")
     if not os.access(args.licence_header_fp, os.R_OK):
-        die(f"invalid licence: read permission denied: {args.licence_header_fp}")
+        die(f"invalid licence: read permission denied: '{args.licence_header_fp}'")
     if not args.licence_header_fp.is_file():
-        die(f"invalid licence: not a file: {args.licence_header_fp}")
+        die(f"invalid licence: not a file: '{args.licence_header_fp}'")
 
     if args.ignore_fp is not None:
         if not args.ignore_fp.exists():
-            die(f"invalid ignore: no such file: {args.ignore_fp}")
+            die(f"invalid ignore: no such file: '{args.ignore_fp}'")
         if not os.access(args.ignore_fp, os.R_OK):
-            die(f"invalid ignore: read permission denied: {args.ignore_fp}")
+            die(f"invalid ignore: read permission denied: '{args.ignore_fp}'")
         if not args.ignore_fp.is_file():
-            die(f"invalid ignore: not a file: {args.ignore_fp}")
+            die(f"invalid ignore: not a file: '{args.ignore_fp}'")
 
 def _normalise_text(text: str) -> str:
     """Strip common line comment markers from each line and trim whitespace.
@@ -204,7 +204,7 @@ def main() -> int:
         try:
             ignore_text = args.ignore_fp.read_text()
         except UnicodeDecodeError:
-            die(f"invalid ignore: invalid source encoding: {args.ignore_fp}")
+            die(f"invalid ignore: invalid source encoding: '{args.ignore_fp}'")
 
     paths_to_scan = retrieve_paths(args.target_dir, ignore_text)
 
@@ -215,9 +215,10 @@ def main() -> int:
     # Read licence once
     licence_text = args.licence_header_fp.read_text()
     if not licence_text.strip():
-        die(f"invalid licence: licence file is empty: {args.licence_header_fp}")
+        die(f"invalid licence: licence file is empty: '{args.licence_header_fp}'")
 
-    print(f"Found {COL_INFO}{len(paths_to_scan):,}{COL_RESET} files to scan.\n")
+    print(f"Found {COL_INFO}{len(paths_to_scan):,}{COL_RESET} files to scan.")
+    print("Scanning...\n", flush=True)
 
     for path in paths_to_scan:
         if not os.access(path, os.R_OK):
