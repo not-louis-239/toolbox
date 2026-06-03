@@ -2,7 +2,7 @@
 
 # check_licences.py - check a target folder for files missing a licence header
 # optionally, input a path to a text file with a list of files or directories
-# to ignore recursively
+# to ignore according to .gitignore-style rules
 
 # Copyright (C) 2026 Louis Masarei-Boulton <243234869+not-louis-239@users.noreply.github.com>
 # https://github.com/not-louis-239
@@ -75,16 +75,17 @@ def validate_args(args: Args) -> None:
         die(f"invalid licence: not a file: {args.licence_header_fp}")
 
     if args.ignore_fp is not None:
-        if not os.access(args.ignore_fp, os.R_OK):
-            die(f"invalid ignore: read permission denied: {args.ignore_fp}")
         if not args.ignore_fp.exists():
             die(f"invalid ignore: no such file: {args.ignore_fp}")
+        if not os.access(args.ignore_fp, os.R_OK):
+            die(f"invalid ignore: read permission denied: {args.ignore_fp}")
         if not args.ignore_fp.is_file():
             die(f"invalid ignore: not a file: {args.ignore_fp}")
 
 def _normalise_text(text: str) -> str:
-    # Strip common line comment markers from each line and trim whitespace.
-    # Handles '#', '//' and C-style block comment markers like '/*' and leading '*'.
+    """Strip common line comment markers from each line and trim whitespace.
+    Handles '#', '//' and C-style block comment markers like '/*' and leading '*'."""
+
     lines = text.splitlines()
     out_lines = []
     for line in lines:
@@ -101,21 +102,21 @@ def _path_matches_pattern(p: Path, pat: str) -> bool:
     """Check whether a path matches an ignore pattern.
     Expects a relative path."""
 
-    pp = PurePosixPath(p)
+    ppp = PurePosixPath(p)
 
     # Directory pattern (ends with a slash) - match any path that contains
     # the directory name in its parts.
     if pat.endswith("/"):
         pat = pat.rstrip("/")
-        return any(part == pat for part in pp.parts)
+        return any(part == pat for part in ppp.parts)
 
     # If the pattern contains glob characters or a path separator, use
     # pathlib's match which understands globs (e.g. "*.pyc", "dir/*.txt").
-    if any(ch in pat for ch in "*/?[]") or "/" in pat:
-        return pp.match(pat)
+    if any(ch in pat for ch in "*/?[]"):
+        return ppp.match(pat)
 
     # Plain name (e.g. ".git") - match if any path part equals the name.
-    return any(part == pat for part in pp.parts)
+    return any(part == pat for part in ppp.parts)
 
 def retrieve_paths(directory: Path, ignore: str) -> list[Path]:
     """Retrieve all files in the given directory, in accordance
@@ -140,7 +141,7 @@ def retrieve_paths(directory: Path, ignore: str) -> list[Path]:
     for path in paths:
         # Hardcoded ignores required as some files
         # will crash the scanner if not ignored
-        if path.name == ".DS_Store":
+        if path.name in [".DS_Store", "Thumbs.db"]:
             continue
 
         resolved = path.resolve()
@@ -178,16 +179,13 @@ def scan_file_for_licence(file_text: str, licence_text: str) -> bool:
 
         # Start scanning until either the entire licence is matched,
         # we reach the end of the file, or we find a line that doesn't match
-        if file_line == licence_line:
+        while file_line == licence_line:
             file_lineno += 1
             licence_lineno += 1
+            if licence_lineno >= num_licence_lines:
+                return True
 
-            while file_line == licence_line:
-                file_lineno += 1
-                licence_lineno += 1
-                if licence_lineno >= num_licence_lines:
-                    return True
-                file_line, licence_line = file_lines_norm[file_lineno], licence_lines_norm[licence_lineno]
+            file_line, licence_line = file_lines_norm[file_lineno], licence_lines_norm[licence_lineno]
 
         licence_lineno = 0
         file_lineno += 1
@@ -209,12 +207,17 @@ def main() -> int:
             die(f"invalid ignore: invalid source encoding: {args.ignore_fp}")
 
     paths_to_scan = retrieve_paths(args.target_dir, ignore_text)
-    print(f"Found {COL_INFO}{len(paths_to_scan):,}{COL_RESET} files to scan.")
+
+    if not paths_to_scan:
+        print(f"No files to scan.")
+        return 0
 
     # Read licence once
     licence_text = args.licence_header_fp.read_text()
     if not licence_text.strip():
         die(f"invalid licence: licence file is empty: {args.licence_header_fp}")
+
+    print(f"Found {COL_INFO}{len(paths_to_scan):,}{COL_RESET} files to scan.\n")
 
     for path in paths_to_scan:
         if not os.access(path, os.R_OK):
@@ -231,10 +234,8 @@ def main() -> int:
             print(f"missing licence: {COL_ERR}'{path}'{COL_RESET}")
             num_missing += 1
 
-    print()
-
     if num_missing:
-        print(f"Scan complete. {COL_ERR}{num_missing:,}{COL_RESET} files are missing licences.")
+        print(f"\nScan complete. {COL_ERR}{num_missing:,}{COL_RESET} files are missing licences.")
         return 1
 
     print("Scan complete. No files missing licences were found.")
