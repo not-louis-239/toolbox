@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# v1.0.0
+# v1.1.0
 # colsample.py - script to test terminal colours
 # Copyright (C) 2026 Louis Masarei-Boulton <243234869+not-louis-239@users.noreply.github.com>
 # https://github.com/not-louis-239
@@ -43,6 +43,24 @@ def main():
             code = i * 16 + j
             print(f"{col(code)}{code:03}", end=' ')
         print(END)
+
+    print("\nTrueColor Gradient Test")
+    LEFT_COLOUR = (255, 255, 0)
+    RIGHT_COLOUR = (0, 208, 255)
+
+    for i in range(30):
+        frac = i / 30
+        lr, lg, lb = LEFT_COLOUR
+        rr, rg, rb = RIGHT_COLOUR
+
+        r, g, b = (
+            int(lr * (1 - frac) + rr * frac),
+            int(lg * (1 - frac) + rg * frac),
+            int(lb * (1 - frac) + rb * frac)
+        )
+
+        print(f"\033[38;2;{r};{g};{b}m━", end='')
+    print(END)
 
 if __name__ == "__main__":
     main()
