@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# v1.0.0
 # 'portal' (symlink) manager for fast travel around your filesystem in your terminal
 # Copyright (C) 2026 Louis Masarei-Boulton <243234869+not-louis-239@users.noreply.github.com>
 # https://github.com/not-louis-239
