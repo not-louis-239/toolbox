@@ -17,7 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass
+# TODO: figure out what to do with the damn dependencies inside the lib/ folder
+
+from pathlib import Path
+from typing import cast
+from PIL import Image
+
+from toolbox_lib.ansi_convert import ANSIPixel, AColour
+
 
 def col(colour: tuple[int, int, int] | int | None, bg: bool = False) -> str:
     """Generate a colour code for the given colour."""
@@ -32,44 +39,43 @@ def col(colour: tuple[int, int, int] | int | None, bg: bool = False) -> str:
     return f"{48 if bg else 38};2;{r};{g};{b}"
 
 
-@dataclass
-class ANSIPixel:
-    # tuple[int, int, int] = TrueColor (r, g, b)
-    # int                  = 8-bit colours (0-255)
-    # None                 = default colour
-    bg_colour: tuple[int, int, int] | int | None = None
-    fg_colour: tuple[int, int, int] | int | None = None
-    fg_char: str = " "
-    fg_faint: bool = False
+def load_img_pixels(img_path: Path) -> list[list[tuple[int, int, int, int]]]:
+    """Load pixel data from an image file.
+    Returns a grid of tuples of (r, g, b, a)"""
+    raw = Image.open(img_path).convert("RGBA")
 
-    def render(self) -> str:
-        """Serialise the ANSIPixel into a string that can be
-        printed to the terminal."""
+    pixels: list[list[AColour]] = []
+    for y in range(raw.height):
+        row: list[AColour] = []
 
-        codes: list[str] = []
-        codes.append(col(self.fg_colour, False))
-        codes.append(col(self.bg_colour, True))
+        for x in range(raw.width):
+            r, g, b, a = cast(AColour, raw.getpixel((x, y)))
+            row.append((r, g, b, a))
 
-        if self.fg_faint:
-            codes.append("2")
-        else:
-            codes.append("22")  # cancel faint
+        pixels.append(row)
 
-        return f"\033[{';'.join(c for c in codes if c)}m{self.fg_char}"
+    return pixels
+
+
+def load_from_img(img_path: Path) -> list[list[ANSIPixel]]:
+    """Load pixel data from an image file and convert it to
+    ANSIPixel objects."""
+    raw = load_img_pixels(img_path)
+    ...
+
+
+def blit(dest: list[list[ANSIPixel]], src: list[list[ANSIPixel]], pos: tuple[int, int]) -> None:
+    """Copy pixels from src to dest at position pos."""
+    for y, row in enumerate(src):
+        for x, pixel in enumerate(row):
+            ...
 
 
 def serialise(img: list[list[ANSIPixel]]) -> str:
     """Serialise an image into a string that can be printed to the terminal."""
     lines = []
     for row in img:
-        lines.append("".join(p.render() for p in row))
+        line = "".join(p.render() for p in row)
+        lines.append(line)
 
     return "\n".join(lines)
-
-
-def unserialise(src: list[str]) -> list[list[ANSIPixel]]:
-    """Parse an image from a list of string rows
-    into a list of ANSIPixels. Expects that the source
-    does not have trailing newlines."""
-
-    ... # TODO: implement this function
