@@ -33,6 +33,14 @@ def _rgb_to_col256(r: int, g: int, b: int) -> int:
     """Convert RGB values to a 256-colour code"""
     return 16 + 36 * (r // 51) + 6 * (g // 51) + b // 51
 
+def _col256_to_rgb(col256: int) -> tuple[int, int, int]:
+    """Convert a 256-colour code to RGB values"""
+    c = col256 - 16
+    r = (c // 36) * 51
+    g = ((c % 36) // 6) * 51
+    b = c % 6 * 51
+    return (r, g, b)
+
 def col(colour: AColour | None, *, bg: bool = False, mode: ColourSpace) -> str:
     """Generate a colour code for the given colour."""
 

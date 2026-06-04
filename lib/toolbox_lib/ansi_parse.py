@@ -19,6 +19,7 @@
 
 # TODO: figure out what to do with the damn dependencies inside the lib/ folder
 
+import re
 from pathlib import Path
 from typing import cast
 from PIL import Image
@@ -27,7 +28,8 @@ from toolbox_lib.ansi_convert import (
     ANSIPixel,
     AColour,
     ColourSpace,
-    convert_img_to_ansi_pixels
+    convert_img_to_ansi_pixels,
+    _col256_to_rgb
 )
 
 
@@ -64,6 +66,8 @@ def blit(dest: list[list[ANSIPixel]], src: list[list[ANSIPixel]], pos: tuple[int
     for y, row in enumerate(src):
         start_x, start_y = px, py + y
         end_x = start_x + len(row)
+        if start_y >= len(dest):
+            continue
         dest[start_y][start_x:end_x] = row
 
 
@@ -75,3 +79,105 @@ def serialise(img: list[list[ANSIPixel]], mode: ColourSpace) -> str:
         lines.append(line)
 
     return "\n".join(lines)
+
+
+
+
+ESC_RE = re.compile(r"\x1b\[([0-9;]*)m")
+
+
+def unserialise(img_str: str) -> list[list[ANSIPixel]]:
+    """Unserialise an image from a string to a 2-dimensional
+    array of ANSIPixels.
+    """
+
+    rows: list[list[ANSIPixel]] = []
+
+    fg_colour: AColour | None = None
+    bg_colour: AColour | None = None
+    faint = False
+
+    for line in img_str.splitlines():
+        row: list[ANSIPixel] = []
+
+        pos = 0
+
+        while pos < len(line):
+            match = ESC_RE.match(line, pos)
+
+            if match:
+                params = match.group(1)
+
+                codes = (
+                    [0]
+                    if params == ""
+                    else [int(x) for x in params.split(";")]
+                )
+
+                i = 0
+                while i < len(codes):
+                    code = codes[i]
+
+                    if code == 0:
+                        fg_colour = None
+                        bg_colour = None
+                        faint = False
+
+                    elif code == 2:
+                        faint = True
+
+                    elif code == 22:
+                        faint = False
+
+                    elif code == 38:
+                        if (
+                            i + 2 < len(codes)
+                            and codes[i + 1] == 5
+                        ):
+                            col256 = codes[i + 2]
+                            r, g, b = _col256_to_rgb(col256)
+
+                            fg_colour = (
+                                r,
+                                g,
+                                b,
+                                127 if faint else 255,
+                            )
+
+                            i += 2
+
+                    elif code == 48:
+                        if (
+                            i + 2 < len(codes)
+                            and codes[i + 1] == 5
+                        ):
+                            col256 = codes[i + 2]
+                            r, g, b = _col256_to_rgb(col256)
+
+                            bg_colour = (
+                                r,
+                                g,
+                                b,
+                                127 if faint else 255,
+                            )
+
+                            i += 2
+
+                    i += 1
+
+                pos = match.end()
+                continue
+
+            row.append(
+                ANSIPixel(
+                    fg_colour=fg_colour,
+                    bg_colour=bg_colour,
+                    fg_char=line[pos],
+                )
+            )
+
+            pos += 1
+
+        rows.append(row)
+
+    return rows
