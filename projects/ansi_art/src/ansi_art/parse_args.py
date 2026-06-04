@@ -22,13 +22,22 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NoReturn
 
-from ansi_art.utils import ColourSpace
+
+try:
+    root = next(p for p in Path(__file__).parents if (p / ".git").exists())
+except StopIteration:
+    raise RuntimeError("Could not find repository root directory") from None
+
+sys.path.insert(0, str(root / "lib"))
+
+
+from toolbox_lib.ansi_convert import ColourSpace
+
 
 @dataclass
 class Args:
     input: Path
     output: Path
-    small: bool
     force: bool
     mode: ColourSpace  # force the compiler to use a specific colour mode
 
@@ -55,12 +64,6 @@ def parse_args() -> Args:
     )
 
     parser.add_argument(
-        "-s", "--small",
-        action="store_true",
-        help="Generate a smaller version of the output."
-    )
-
-    parser.add_argument(
         "-f", "--force",
         action="store_true",
         help="Overwrite the output file if it exists."
@@ -78,7 +81,6 @@ def parse_args() -> Args:
     args = Args(
         input=args_raw.input,
         output=args_raw.output,
-        small=args_raw.small,
         force=args_raw.force,
         mode=args_raw.mode
     )

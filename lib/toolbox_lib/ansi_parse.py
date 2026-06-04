@@ -49,7 +49,7 @@ def load_img_pixels(img_path: Path) -> list[list[AColour]]:
     return pixels
 
 
-def load_from_img(img_path: Path) -> list[list[ANSIPixel]]:
+def load_ansi_from_img(img_path: Path) -> list[list[ANSIPixel]]:
     """Load pixel data from an image file and convert it to
     ANSIPixel objects."""
     raw = load_img_pixels(img_path)

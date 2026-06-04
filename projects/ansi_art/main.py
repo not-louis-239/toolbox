@@ -22,11 +22,16 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from ansi_art.parse_args import parse_args, validate_args
-from ansi_art.load_img import load_img
-from ansi_art.convert import convert_img_to_ansi_art
+try:
+    proj_root = next(p for p in Path(__file__).parents if (p / ".git").exists())
+except StopIteration:
+    raise RuntimeError("Could not find repository root directory") from None
+sys.path.insert(0, str(proj_root / "lib"))
 
-def make_python_script(ansi_art) -> str:
+from ansi_art.parse_args import parse_args, validate_args
+from toolbox_lib.ansi_parse import load_ansi_from_img, serialise
+
+def make_python_script(ansi_art: str) -> str:
     escaped: list[str] = list(
         ansi_art
         .replace('\033', '\\033')
@@ -46,14 +51,13 @@ def main():
     args = parse_args()
     validate_args(args)
 
-    img = load_img(args.input)
-    ansi_art = convert_img_to_ansi_art(img, small=args.small, mode=args.mode)
-
-    py_script = make_python_script(ansi_art)
+    ansi_art = load_ansi_from_img(args.input)
+    serialised = serialise(ansi_art, mode=args.mode)
+    py_script = make_python_script(serialised)
     args.output.write_text(py_script, encoding="utf-8")
 
     print(f"Script generation completed at '{args.output}'\n")
-    print(ansi_art)
+    print(serialised)
 
 if __name__ == "__main__":
     main()
