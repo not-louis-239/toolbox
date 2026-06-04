@@ -38,7 +38,7 @@ def get_day_phase_literal() -> str:
 
 def get_uptime() -> float:
     """Get an uptime value in terms of total seconds since
-    last reboot. Throws errors if it cannot be determined."""
+    last reboot. Throws a RuntimeError if it cannot be determined."""
     try:
         cmd = ["sysctl", "-n", "kern.boottime"]
         out = subprocess.check_output(cmd, text=True)
@@ -48,8 +48,8 @@ def get_uptime() -> float:
         last_boot_time = int(match.group())
         uptime = time.time() - last_boot_time
 
-    except Exception:
-        raise
+    except Exception as e:
+        raise RuntimeError(f"Error determining uptime: {e}") from None
 
     return uptime
 

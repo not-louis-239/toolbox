@@ -18,8 +18,9 @@
 
 
 from toolbox_lib.utils import raw_len
+from toolbox_lib.colours import COL_END, COL_FAINT
 
-def make_dialog_box(text: str) -> str:
+def make_dialog_box(text: str, border_colour: str = "") -> str:
     """Creates a dialog box from a list of lines."""
     lines = text.splitlines()
 
@@ -27,12 +28,12 @@ def make_dialog_box(text: str) -> str:
 
     body: list[str] = []
     for line in lines:
-        body.append(f"│ {line}{' ' * (max_line_len - raw_len(line))} │\n")
+        body.append(f"{border_colour}│{COL_END} {line}{' ' * (max_line_len - raw_len(line))} {border_colour}│{COL_END}\n")
 
     dialog_box = (
-        f"┌{'─' * (max_line_len + 2)}┐\n"
+        f"{border_colour}┌{'─' * (max_line_len + 2)}┐\n{COL_END}"
         + "".join(body)
-        + f"└{'─' * (max_line_len + 2)}┘"
+        + f"{border_colour}└{'─' * (max_line_len + 2)}┘{COL_END}"
     )
 
     return dialog_box
@@ -48,7 +49,7 @@ def _test():
     ]
 
     for test_case in test_cases:
-        print(make_dialog_box(test_case))
+        print(make_dialog_box(test_case, COL_FAINT))
 
 if __name__ == "__main__":
     _test()
