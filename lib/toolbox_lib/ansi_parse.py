@@ -23,23 +23,15 @@ from pathlib import Path
 from typing import cast
 from PIL import Image
 
-from toolbox_lib.ansi_convert import ANSIPixel, AColour
+from toolbox_lib.ansi_convert import (
+    ANSIPixel,
+    AColour,
+    ColourSpace,
+    convert_img_to_ansi_pixels
+)
 
 
-def col(colour: tuple[int, int, int] | int | None, bg: bool = False) -> str:
-    """Generate a colour code for the given colour."""
-
-    if colour is None:
-        return "49" if bg else "39"
-
-    if isinstance(colour, int):
-        return f"{48 if bg else 38};5;{colour}"
-
-    r, g, b = colour
-    return f"{48 if bg else 38};2;{r};{g};{b}"
-
-
-def load_img_pixels(img_path: Path) -> list[list[tuple[int, int, int, int]]]:
+def load_img_pixels(img_path: Path) -> list[list[AColour]]:
     """Load pixel data from an image file.
     Returns a grid of tuples of (r, g, b, a)"""
     raw = Image.open(img_path).convert("RGBA")
@@ -61,21 +53,25 @@ def load_from_img(img_path: Path) -> list[list[ANSIPixel]]:
     """Load pixel data from an image file and convert it to
     ANSIPixel objects."""
     raw = load_img_pixels(img_path)
-    ...
+    pixels = convert_img_to_ansi_pixels(raw)
+    return pixels
 
 
 def blit(dest: list[list[ANSIPixel]], src: list[list[ANSIPixel]], pos: tuple[int, int]) -> None:
-    """Copy pixels from src to dest at position pos."""
+    """Copy pixels from src to dest, starting from the top left at `pos`."""
+    px, py = pos
+
     for y, row in enumerate(src):
-        for x, pixel in enumerate(row):
-            ...
+        start_x, start_y = px, py + y
+        end_x = start_x + len(row)
+        dest[start_y][start_x:end_x] = row
 
 
-def serialise(img: list[list[ANSIPixel]]) -> str:
+def serialise(img: list[list[ANSIPixel]], mode: ColourSpace) -> str:
     """Serialise an image into a string that can be printed to the terminal."""
     lines = []
     for row in img:
-        line = "".join(p.render() for p in row)
+        line = "".join(p.render(mode=mode) for p in row)
         lines.append(line)
 
     return "\n".join(lines)
