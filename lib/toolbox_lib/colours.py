@@ -21,3 +21,6 @@ COL_END = "\033[0m"
 COL_BOLD = "\033[1m"
 COL_UNDERLINE = "\033[4m"
 COL_ITALIC = "\033[3m"
+
+# coloured formatting options
+COL_ERR = "\033[91m"

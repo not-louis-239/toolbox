@@ -1,3 +1,18 @@
 {
-    "username": "John"
+    "username": "John",
+
+    "date_fmt": "%Y-%m-%d",
+    "time_fmt": "%H:%M:%S",
+    "uptime_fmt": "{hours}h {minutes}m",
+
+    "accent_main": "\\033[93m",
+    "accent_sec": "\\033[92m",
+
+    "col_info": "\\033[94m",
+    "col_warn": "\\033[93m",
+    "col_err": "\\033[91m",
+
+    "clutter_warnings": {
+        "~/Downloads": { "note": 20, "warn": 40, "crit": 60 }
+    }
 }

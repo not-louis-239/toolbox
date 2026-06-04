@@ -19,7 +19,7 @@
 
 import sys
 import json
-from typing import Any
+from typing import Any, NoReturn
 from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
@@ -33,8 +33,15 @@ sys.path.insert(0, str(root / "lib"))
 
 from toolbox_lib.dialog_boxes import make_dialog_box
 from toolbox_lib.welcome_utils import get_day_phase_literal, get_uptime
-from toolbox_lib.colours import COL_FAINT, COL_END, COL_BOLD
+from toolbox_lib.colours import COL_FAINT, COL_END, COL_BOLD, COL_ERR
 from toolbox_lib.count_files import count_files_in_dir
+
+def die(msg: str, exitcode: int = 1) -> NoReturn:
+    print(f"{COL_ERR}{COL_BOLD}fatal{COL_END}: {COL_ERR}{msg}{COL_END}", file=sys.stderr)
+    sys.exit(exitcode)
+
+def unescape_str(s: str) -> str:
+    return s.replace("\\033", "\x1b")
 
 @dataclass(frozen=True, kw_only=True)
 class Args:
@@ -76,7 +83,10 @@ class WelcomeConfig:
 
     clutter_warnings: dict[Path, ClutterWarningThresholds] | None
 
-def parse_warning_thresholds(json_data: dict[str, Any]) -> dict[Path, ClutterWarningThresholds]:
+def parse_warning_thresholds(json_data: dict[str, dict[str, int]]) -> dict[Path, ClutterWarningThresholds]:
+    """Parse a dictionary of {paths, thresholds} into a
+    deserialised ClutterWarningThresholds object for each path."""
+
     thresholds = {}
     for path_str, threshold_dict in json_data.items():
         path = Path(path_str)
@@ -97,6 +107,9 @@ def generate_clutter_warnings(config: WelcomeConfig) -> str:
     out: list[str] = []
 
     for path_to_scan, thresholds in warning_config.items():
+        if not path_to_scan.expanduser().exists():
+            print(f"warning: skipping path: no such directory: '{path_to_scan}'", file=sys.stderr)
+            continue
         num_files = count_files_in_dir(path_to_scan)
 
         if num_files >= thresholds.crit:
@@ -119,11 +132,12 @@ def parse_welcome_file(path: Path) -> WelcomeConfig:
     except FileNotFoundError:
         config_data = {}
     except PermissionError:
-        raise PermissionError(f"Read permission denied: {path}") from None
+        die(f"Invalid JSON: read permission denied: '{path}'")
     except json.JSONDecodeError:
-        raise RuntimeError("Invalid JSON file") from None
+        die(f"Invalid JSON: '{path}'")
     except Exception as e:
-        raise RuntimeError(f"Unexpected error: {e}") from None
+        err_str = f"{type(e).__name__}: {e}" if str(e) else type(e).__name__
+        die(f"Unexpected error: '{path}' ({err_str})")
 
     username = config_data.get("username", Path.home().name)
 
@@ -131,13 +145,20 @@ def parse_welcome_file(path: Path) -> WelcomeConfig:
     time_fmt = config_data.get("time_fmt", "%H:%M")
     uptime_fmt = config_data.get("uptime_fmt", "{hours}h {minutes}m")
 
-    accent_main = config_data.get("accent_main", "\033[95m")
-    accent_sec = config_data.get("accent_sec", "\033[92m")
+    accent_main = unescape_str(config_data.get("accent_main", "\033[95m"))
+    accent_sec = unescape_str(config_data.get("accent_sec", "\033[92m"))
 
-    col_info = config_data.get("col_info", "\033[94m")
-    col_warn = config_data.get("col_warn", "\033[93m")
-    col_err = config_data.get("col_err", "\033[91m")
-    clutter_warnings = config_data.get("clutter_warnings", None)
+    col_info = unescape_str(config_data.get("col_info", "\033[94m"))
+    col_warn = unescape_str(config_data.get("col_warn", "\033[93m"))
+    col_err = unescape_str(config_data.get("col_err", "\033[91m"))
+
+    # parse clutter warnings
+    clutter_warnings_raw: dict[str, Any] | None = config_data.get("clutter_warnings", None)
+
+    if not clutter_warnings_raw:
+        clutter_warnings: dict[Path, ClutterWarningThresholds] | None = None
+    else:
+        clutter_warnings: dict[Path, ClutterWarningThresholds] | None = parse_warning_thresholds(clutter_warnings_raw)
 
     return WelcomeConfig(
         username=username,
@@ -193,4 +214,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
