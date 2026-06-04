@@ -88,8 +88,9 @@ ESC_RE = re.compile(r"\x1b\[([0-9;]*)m")
 
 def unserialise(img_str: str) -> list[list[ANSIPixel]]:
     """Unserialise an image from a string to a 2-dimensional
-    array of ANSIPixels.
-    """
+    array of ANSIPixels."""
+
+    # TODO: Add support for vanilla ANSI escapes like '\x1b[3Xm' or '\x1b[9Xm'
 
     rows: list[list[ANSIPixel]] = []
 

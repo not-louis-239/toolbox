@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # welcome.py - entry point for terminal welcome sequence
 
 
